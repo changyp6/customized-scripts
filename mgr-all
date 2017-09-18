@@ -1,0 +1,61 @@
+#!/bin/bash
+services=()
+ctrl_type=$(echo $(basename $0) | awk -F- '{print $2}')
+
+find_kcp_service()
+{
+    for kcpconf in $(find /etc/kcptun -type f)
+    do
+        services+=(kcptun@$(basename ${kcpconf}).service)
+    done
+}
+
+find_ss_service()
+{
+    for ssconf in $(find /etc/shadowsocks-libev -name "local-*")
+    do
+        services+=(ss-local@$(echo $(basename ${ssconf}) | awk -F- '{print $2}').service)
+    done
+}
+
+service_ctrl()
+{
+    systemctl $1 ${services[@]}
+}
+
+case ${ctrl_type} in
+    all)
+        find_kcp_service
+        find_ss_service
+    ;;
+    kcp)
+        find_kcp_service
+    ;;
+    ss)
+        find_ss_service
+    ;;
+    *)
+        echo "No such function: ${ctrl_type}!"
+    ;;
+esac
+
+case $1 in
+    start)
+        service_ctrl start
+        service_ctrl "status -l"
+    ;;
+    stop)
+        service_ctrl stop
+        service_ctrl "status -l"
+    ;;
+    restart)
+        service_ctrl restart
+        service_ctrl "status -l"
+    ;;
+    status)
+        service_ctrl "status -l"
+    ;;
+    *)
+        service_ctrl "status -l"
+    ;;
+esac

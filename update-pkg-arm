@@ -1,0 +1,19 @@
+#/bin/bash
+
+pkgs=$1
+exclude=none
+if [ $# -eq 2 ]; then
+  exclude=$2
+fi
+for pkg in ${pkgs}
+do
+    name=${pkg%_*}
+    version=${pkg##*_}
+#    for arch in armv6k armv7-a armv7-a-hf armv8-a
+    for arch in armv7-a armv7-a-hf armv8-a
+    do
+        rm -rf ${arch}/${name}
+        extractarm ${arch} ${version} ${exclude} ${name}
+        git checkout ${arch}/${name}/make.inc
+    done
+done

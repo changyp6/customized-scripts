@@ -1,0 +1,121 @@
+#!/bin/bash
+RPM2CPIO=`which rpm2cpio`
+CPIO=`which cpio`
+
+quit=0
+
+if [ -z "${RPM2CPIO}" ]; then
+    quit=1
+    echo "rpm2cpio not found!"
+fi
+
+if [ -z "${CPIO}" ]; then
+    quit=1
+    echo "cpio not found!"
+fi
+
+if [ $# -lt 2 ]; then
+    echo "Usage: $0 pkgname package0.rpm [package1.rpm] [package2.rpm]"
+    quit=1
+fi
+
+if [ ${quit} = 1 ]; then
+exit 1
+fi
+
+pkgname=$1
+
+if [ ${pkgname##*.} = "rpm" ]; then
+    echo "Wrong package name: ${pkgname}"
+    quit=1
+fi
+
+if [ ${quit} = 1 ]
+then
+    exit 1
+fi
+
+shift
+
+for pkg in $@
+do
+    if [ ${pkg##*.} != "rpm" ]; then
+        echo "Skipping file ${pkg}..."
+        continue
+    fi
+    echo "Extracting ${pkg}..."
+    basename=`basename ${pkg}`
+    name=
+    version=
+    for section in `echo ${basename} | tr - \ `
+    do
+        version=`echo ${section} | egrep -o -e "^[0-9]*[0-9.]*[0-9]*$"`
+        if [ ! -z "${version}" -a "${version}" = "${section}" ]; then
+            break;
+        else
+            if [ -z "${name}" ]; then
+                name=${section}
+            else
+                name=${name}-${section}
+            fi
+        fi
+    done
+
+    absfilepath=$(cd $(dirname $pkg); find ${PWD} -name ${basename}; cd -)
+
+    arch=$(echo ${name} | awk -F- '{print $1}')
+    rpmdir=$(pwd)
+    if [ ${arch} = "aarch64" -o ${arch} = "armv6k" -o ${arch} = "armv7a" -o ${arch} = "thumb2" -o ${arch} = "armv7-a" -o ${arch} = "armv7-a-hf" ]; then
+        orig_arch=${arch}
+        if [ ${arch} = "aarch64" ]; then
+            arch=armv8-a
+        elif [ ${arch} = "thumb2" ]; then
+            arch=armv7-a-hf
+        elif [ ${arch} = "armv7a" ]; then
+            arch=armv7-a
+        elif [ ${arch} = "armv7-a" ]; then
+            orig_arch=armv7a
+        elif [ ${arch} = "armv7-a-hf" ]; then
+            orig_arch=thumb2
+        fi
+        mkdir -p ${arch}/${pkgname}
+        pkgdir=${rpmdir}/${arch}/${pkgname}
+        cd ${pkgdir}
+        if [ -e ${pkgdir}/usr ]; then
+            mv ${pkgdir}/usr ${pkgdir}/prev_usr
+        fi
+        ${RPM2CPIO} ${absfilepath} | ${CPIO} -dmiv > /dev/null 2>&1
+        mv usr tmp_usr
+        cp -dpRf ${pkgdir}/tmp_usr/*/${orig_arch}/* ${rpmdir}/${arch}/${pkgname}
+        rm -rf tmp_usr
+        if [ -e ${pkgdir}/prev_usr ]; then
+            if [ -e ${pkgdir}/usr ]; then
+                cp -dpRf ${pkgdir}/prev_usr/* ${pkgdir}/usr/
+                rm -rf ${pkgdir}/prev_usr
+            else
+                mv ${pkgdir}/prev_usr ${pkgdir}/usr
+            fi
+        fi
+        find ${pkgdir} -name "pkgconfig" | xargs rm -rf
+        find ${pkgdir} -name "doc" | xargs rm -rf
+        find ${pkgdir} -name "aclocal" | xargs rm -rf
+        if [ -e ${pkgdir}/usr/include ]; then
+            cp -dpRf ${pkgdir}/usr/include ${pkgdir}/
+            rm -rf ${pkgdir}/usr/include
+        fi
+        if [ -e ${pkgdir}/usr/share ]; then
+            datadir=$(ls ${pkgdir}/usr/share)
+            if [ -z "${datadir}" ]; then
+                rm -rf ${pkgdir}/usr/share
+            fi
+        fi
+
+        if [ -e ${pkgdir}/usr ]; then
+            usrdir=$(ls ${pkgdir}/usr)
+            if [ -z "${usrdir}" ]; then
+                rm -rf ${pkgdir}/usr
+            fi
+        fi
+        cd ${rpmdir}
+    fi
+done

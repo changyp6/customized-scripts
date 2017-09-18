@@ -1,0 +1,128 @@
+#!/bin/sh
+REPO=/data/cache/mybuild
+RELEASEVER=`cat /etc/fedora-release | awk '{print $3}'`
+ARCH=`uname -i`
+BUILDROOT=$HOME/rpmbuild
+
+if [ -e $BUILDROOT ]
+then
+  BUILDARCH=x86_64
+  if [ ! -e $REPO/$RELEASEVER/$BUILDARCH ]
+  then
+    mkdir -p $REPO/$RELEASEVER/$BUILDARCH
+  fi
+  if [ -e $BUILDROOT/RPMS/$BUILDARCH ]
+  then
+    FILE_NUM=`ls $BUILDROOT/RPMS/$BUILDARCH | wc -w`
+    if [ $FILE_NUM -gt 0 ]
+    then
+      for file in `ls $BUILDROOT/RPMS/$BUILDARCH | grep debuginfo`
+      do
+        rm -f $BUILDROOT/RPMS/$BUILDARCH/$file
+      done
+
+      FILE_NUM=`ls $BUILDROOT/RPMS/$BUILDARCH | wc -w`
+      if [ $FILE_NUM -gt 0 ]
+      then
+        chmod 644 $BUILDROOT/RPMS/$BUILDARCH/*.rpm
+        mv $BUILDROOT/RPMS/$BUILDARCH/*.rpm $REPO/$RELEASEVER/$BUILDARCH
+      fi
+    fi
+  fi
+
+  BUILDARCH=i686
+  if [ ! -e $REPO/$RELEASEVER/$BUILDARCH ]
+  then
+    mkdir -p $REPO/$RELEASEVER/$BUILDARCH
+  fi
+  if [ -e $BUILDROOT/RPMS/$BUILDARCH ]
+  then
+    FILE_NUM=`ls $BUILDROOT/RPMS/$BUILDARCH | wc -w`
+    if [ $FILE_NUM -gt 0 ]
+    then
+      for file in `ls $BUILDROOT/RPMS/$BUILDARCH | grep debuginfo`
+      do
+        rm -f $BUILDROOT/RPMS/$BUILDARCH/$file
+      done
+
+      FILE_NUM=`ls $BUILDROOT/RPMS/$BUILDARCH | wc -w`
+      if [ $FILE_NUM -gt 0 ]
+      then
+        chmod 644 $BUILDROOT/RPMS/$BUILDARCH/*.rpm
+        for file in `ls $BUILDROOT/RPMS/$BUILDARCH`
+        do
+          mv $BUILDROOT/RPMS/$BUILDARCH/$file $REPO/$RELEASEVER/$BUILDARCH
+          ln -sf ../$BUILDARCH/$file $REPO/$RELEASEVER/x86_64/$file
+        done
+      fi
+    fi
+  fi
+
+  if [ -e $BUILDROOT/RPMS/noarch ]
+  then
+    FILE_NUM=`ls $BUILDROOT/RPMS/noarch | wc -w`
+    if [ $FILE_NUM -gt 0 ]
+    then
+      find $BUILDROOT/RPMS/noarch -name "*debuginfo*" -delete
+      mkdir -p $REPO/arm/rpms
+      mkdir -p $REPO/arm/thumb2
+      mkdir -p $REPO/arm/armv6k
+      mkdir -p $REPO/arm/armv7a
+#     mkdir -p $REPO/arm/armv7ahf
+      mkdir -p $REPO/arm/aarch64
+      for armpkg in `find $BUILDROOT/RPMS/noarch -name "thumb2-*"`
+      do
+          mv $armpkg $REPO/arm/thumb2/
+          name=`basename $armpkg`
+          ln -sf ../thumb2/${name} $REPO/arm/rpms/${name}
+      done
+      for armpkg in `find $BUILDROOT/RPMS/noarch -name "armv6k-*"`
+      do
+          mv $armpkg $REPO/arm/armv6k/
+          name=`basename $armpkg`
+          ln -sf ../armv6k/${name} $REPO/arm/rpms/${name}
+      done
+#     for armpkg in `find $BUILDROOT/RPMS/noarch -name "armv7ahf-*"`
+#     do
+#         mv $armpkg $REPO/arm/armv7ahf/
+#         name=`basename $armpkg`
+#         ln -sf ../armv7ahf/${name} $REPO/arm/rpms/${name}
+#     done
+      for armpkg in `find $BUILDROOT/RPMS/noarch -name "armv7a-*"`
+      do
+          mv $armpkg $REPO/arm/armv7a/
+          name=`basename $armpkg`
+          ln -sf ../armv7a/${name} $REPO/arm/rpms/${name}
+      done
+      for armpkg in `find $BUILDROOT/RPMS/noarch -name "aarch64-*"`
+      do
+          mv $armpkg $REPO/arm/aarch64/
+          name=`basename $armpkg`
+          ln -sf ../aarch64/${name} $REPO/arm/rpms/${name}
+      done
+      NUM=`ls $BUILDROOT/RPMS/noarch | wc -w`
+      if [ $NUM -gt 0 ]
+      then
+        mv $BUILDROOT/RPMS/noarch/*.rpm $REPO/$RELEASEVER/$ARCH
+      fi
+    fi
+  fi
+
+  if [ -e $BUILDROOT/SRPMS ]
+  then
+    FILE_NUM=`ls $BUILDROOT/SRPMS | wc -w`
+    if [ $FILE_NUM -gt 0 ]
+    then
+      chmod 644 $BUILDROOT/SRPMS/*.rpm
+      for armpkg in `find $BUILDROOT/SRPMS -name "thumb2*" -or -name "arm*" -or -name "aarch64*"`
+      do
+        mv $armpkg $REPO/arm/srpms
+      done
+      NUM=`ls $BUILDROOT/SRPMS | wc -w`
+      if [ $NUM -gt 0 ]
+      then
+        mv $BUILDROOT/SRPMS/*.rpm $REPO/$RELEASEVER/SRPMS
+      fi
+    fi
+  fi
+fi

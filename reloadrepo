@@ -1,0 +1,12 @@
+#!/bin/bash
+REPO=/repo
+ARCH=`uname -i`
+if [ $# -ne 1 ]; then
+  RELEASEVER=`cat /etc/fedora-release | awk '{print $3}'`
+else
+  RELEASEVER=$1
+fi
+
+createrepo_c --update $REPO/$RELEASEVER/$ARCH && createrepo_c --update $REPO/$RELEASEVER/SRPMS
+createrepo_c --update $REPO/arm/rpms && createrepo_c --update $REPO/arm/srpms
+

@@ -1,0 +1,55 @@
+#!/bin/bash
+RPM2CPIO=`which rpm2cpio`
+CPIO=`which cpio`
+
+quit=0
+
+if [ -z "${RPM2CPIO}" ]; then
+    quit=1
+    echo "rpm2cpio not found!"
+fi
+
+if [ -z "${CPIO}" ]; then
+    quit=1
+    echo "cpio not found!"
+fi
+
+if [ $# -lt 1 ]; then
+    echo "Usage: $0 package.rpm [--version]"
+    quit=1
+fi
+
+if [ ${quit} = 1 ]
+then
+    exit 1
+fi
+
+basename=`basename $1`
+name=
+version=
+for section in `echo ${basename} | tr - \ `
+do
+    version=`echo ${section} | egrep -o -e "^[0-9]*[0-9.]*[0-9]*$"`
+    if [ ! -z "${version}" -a "${version}" = "${section}" ]; then
+        break;
+    else
+        if [ -z "${name}" ]; then
+            name=${section}
+        else
+            name=${name}-${section}
+        fi
+    fi
+done
+
+absfilepath=$(cd $(dirname $1); find ${PWD} -name ${basename}; cd -)
+
+if [ $# = 2 -a "$2" = "--version" ]; then
+    name=${name}-${version}
+fi
+
+mkdir -p ${name}
+cd ${name}
+${RPM2CPIO} ${absfilepath} | ${CPIO} -dmiv
+ls . | grep -v "patch$" | grep -v "diff$" | xargs rm -f
+cd -
+

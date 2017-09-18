@@ -1,0 +1,36 @@
+#/bin/bash
+
+if [ $# -lt 4 ]; then
+    echo "$0 arch version package_name (example: $0 aarch64 1.1.1 exlude_name alsa-lib)"
+    exit 1
+fi
+
+arch=$1
+shift
+version=$1
+shift
+exclude=$1
+shift
+REPO=/repo/arm
+
+if [ ${arch} = "all" ]; then
+    arch="aarch64 armv6k armv7a thumb2"
+elif [ ${arch} = "armv7-a" ]; then
+    arch=armv7a
+elif [ ${arch} = "armv7-a-hf" ]; then
+    arch=thumb2
+elif [ ${arch} = "armv8-a" -o ${arch} = "armv8a" ]; then
+    arch=aarch64
+fi
+
+for a in ${arch}
+do
+    for pkg in $@
+    do
+        if [ ${exclude} != none ]; then
+            find ${REPO}/${a} -name "*${pkg}*" | grep ${version} | grep -v ${exclude} | xargs rpmextarm ${pkg}
+        else
+            find ${REPO}/${a} -name "*${pkg}*" | grep ${version} | xargs rpmextarm ${pkg}
+        fi
+    done
+done

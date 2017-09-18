@@ -1,0 +1,15 @@
+#!/bin/bash
+MPLAYER=`which mplayer`
+if [ ! -x $MPLAYER ]
+then
+  echo "mplayer not found!"
+  return 1
+fi
+
+if [ $# -ne 5 ]
+then
+  echo "Usage: yuvplayer fps width height format file"
+else
+  $MPLAYER -demuxer rawvideo -rawvideo w=$2:h=$3:format=$4 -fps $1 $5
+fi
+

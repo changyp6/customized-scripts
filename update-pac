@@ -1,0 +1,22 @@
+#!/bin/bash
+
+PROXY="SOCKS5 127.0.0.1:33333"
+TMP_DIR=$(mktemp -d)
+
+GFWLIST_URL="https://raw.githubusercontent.com/gfwlist/gfwlist/master/gfwlist.txt"
+GFWLIST_RAW=${TMP_DIR}/gfwlist-raw.txt
+GFWLIST=${TMP_DIR}/gfwlist.txt
+
+if wget -c ${GFWLIST_URL} -O ${GFWLIST_RAW} -o /dev/null; then
+  if base64 -d ${GFWLIST_RAW} > ${GFWLIST}; then
+    if gfwlist2pac -i ${GFWLIST} --precise -f gfwlist.pac -p "${PROXY}"; then
+      echo "Succeed!!"
+    else
+      echo "Failed!!"
+    fi
+  else
+    echo "Failed to decode ${GFWLIST_RAW}"
+  fi
+else
+  echo "Failed to download gfwlist.txt from ${GFWLIST_URL}"
+fi
