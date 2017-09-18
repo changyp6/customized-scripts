@@ -1,5 +1,5 @@
 #!/bin/sh
-REPO=/data/cache/mybuild
+REPO=/repo
 RELEASEVER=`cat /etc/fedora-release | awk '{print $3}'`
 ARCH=`uname -i`
 BUILDROOT=$HOME/rpmbuild
@@ -68,6 +68,7 @@ then
       mkdir -p $REPO/arm/thumb2
       mkdir -p $REPO/arm/armv6k
       mkdir -p $REPO/arm/armv7a
+      mkdir -p $REPO/arm/armv8l
 #     mkdir -p $REPO/arm/armv7ahf
       mkdir -p $REPO/arm/aarch64
       for armpkg in `find $BUILDROOT/RPMS/noarch -name "thumb2-*"`
@@ -93,6 +94,12 @@ then
           mv $armpkg $REPO/arm/armv7a/
           name=`basename $armpkg`
           ln -sf ../armv7a/${name} $REPO/arm/rpms/${name}
+      done
+      for armpkg in `find $BUILDROOT/RPMS/noarch -name "armv8l-*"`
+      do
+          mv $armpkg $REPO/arm/armv8l/
+          name=`basename $armpkg`
+          ln -sf ../armv8l/${name} $REPO/arm/rpms/${name}
       done
       for armpkg in `find $BUILDROOT/RPMS/noarch -name "aarch64-*"`
       do
