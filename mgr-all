@@ -6,7 +6,7 @@ find_kcp_service()
 {
     for kcpconf in $(find /etc/kcptun -type f)
     do
-        services+=(kcptun@$(basename ${kcpconf}).service)
+        services+=(kcptun@$(basename ${kcpconf} .conf).service)
     done
 }
 
@@ -14,7 +14,7 @@ find_ss_service()
 {
     for ssconf in $(find /etc/shadowsocks-libev -name "local-*")
     do
-        services+=(ss-local@$(echo $(basename ${ssconf}) | awk -F- '{print $2}').service)
+        services+=(ss-local@$(echo $(basename ${ssconf} .json) | awk -F- '{print $2}').service)
     done
 }
 
