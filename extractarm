@@ -14,13 +14,15 @@ shift
 REPO=/repo/arm
 
 if [ ${arch} = "all" ]; then
-    arch="aarch64 armv6k armv7a thumb2"
+    arch="aarch64 aarch32 armv6k armv7a thumb2"
 elif [ ${arch} = "armv7-a" ]; then
     arch=armv7a
 elif [ ${arch} = "armv7-a-hf" ]; then
     arch=thumb2
 elif [ ${arch} = "armv8-a" -o ${arch} = "armv8a" ]; then
     arch=aarch64
+elif [ ${arch} = "armv8l" -o ${arch} = "aarch32" ]; then
+    arch=armv8l
 fi
 
 for a in ${arch}

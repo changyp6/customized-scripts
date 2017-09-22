@@ -65,10 +65,12 @@ do
 
     arch=$(echo ${name} | awk -F- '{print $1}')
     rpmdir=$(pwd)
-    if [ ${arch} = "aarch64" -o ${arch} = "armv6k" -o ${arch} = "armv7a" -o ${arch} = "thumb2" -o ${arch} = "armv7-a" -o ${arch} = "armv7-a-hf" ]; then
+    if [ ${arch} = "aarch64" -o ${arch} = "armv8l" -o ${arch} = "armv6k" -o ${arch} = "armv7a" -o ${arch} = "thumb2" -o ${arch} = "armv7-a" -o ${arch} = "armv7-a-hf" ]; then
         orig_arch=${arch}
         if [ ${arch} = "aarch64" ]; then
             arch=armv8-a
+        elif [ ${arch} = "armv8l" ]; then
+            arch=aarch32
         elif [ ${arch} = "thumb2" ]; then
             arch=armv7-a-hf
         elif [ ${arch} = "armv7a" ]; then
