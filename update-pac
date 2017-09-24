@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PROXY="SOCKS5 127.0.0.1:33333"
+PROXY="SOCKS5 127.0.0.1:33333; SOCKS 127.0.0.1:33333"
 TMP_DIR=$(mktemp -d)
 
 GFWLIST_URL="https://raw.githubusercontent.com/gfwlist/gfwlist/master/gfwlist.txt"
