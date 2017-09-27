@@ -7,7 +7,8 @@ GFWLIST_URL="https://raw.githubusercontent.com/gfwlist/gfwlist/master/gfwlist.tx
 GFWLIST_RAW=${TMP_DIR}/gfwlist-raw.txt
 GFWLIST=${TMP_DIR}/gfwlist.txt
 
-if wget -c ${GFWLIST_URL} -O ${GFWLIST_RAW} -o /dev/null; then
+#if wget -c ${GFWLIST_URL} -O ${GFWLIST_RAW} -o /dev/null; then
+if curl -o ${GFWLIST_RAW} ${GFWLIST_URL}; then
   if base64 -d ${GFWLIST_RAW} > ${GFWLIST}; then
     if gfwlist2pac -i ${GFWLIST} --precise -f gfwlist.pac -p "${PROXY}"; then
       echo "Succeed!!"
