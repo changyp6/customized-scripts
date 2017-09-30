@@ -9,9 +9,8 @@ for pkg in ${pkgs}
 do
     name=${pkg%_*}
     version=${pkg##*_}
-#    for arch in armv6k armv7-a armv7-a-hf armv8-a aarch32
-#    for arch in armv7-a armv7-a-hf armv8-a aarch32
-    for arch in armv7-a armv7-a-hf armv8-a
+#    for arch in armv6k armv7-a armv7-a-hf armv8-a armv8l
+    for arch in armv7-a armv7-a-hf armv8-a armv8l
     do
         rm -rf ${arch}/${name}
         extractarm ${arch} ${version} ${exclude} ${name}

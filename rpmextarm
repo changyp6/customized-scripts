@@ -70,7 +70,7 @@ do
         if [ ${arch} = "aarch64" ]; then
             arch=armv8-a
         elif [ ${arch} = "armv8l" ]; then
-            arch=aarch32
+            arch=armv8l
         elif [ ${arch} = "thumb2" ]; then
             arch=armv7-a-hf
         elif [ ${arch} = "armv7a" ]; then
