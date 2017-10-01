@@ -1,6 +1,11 @@
 #!/bin/bash
 
-PROXY="SOCKS5 127.0.0.1:33333; SOCKS 127.0.0.1:33333"
+PROXY_ADDR=127.0.0.1:33333
+if [ -e ${HOME}/.config/scripts_opts ]; then
+    . ${HOME}/.config/scripts_opts
+    PROXY_ADDR=${LOCAL_PROXY}
+fi
+PROXY="SOCKS5 ${PROXY_ADDR}; SOCKS ${PROXY_ADDR}"
 TMP_DIR=$(mktemp -d)
 
 GFWLIST_URL="https://raw.githubusercontent.com/gfwlist/gfwlist/master/gfwlist.txt"

@@ -1,4 +1,4 @@
-#/bin/bash
+#!/bin/bash
 
 if [ $# -lt 4 ]; then
     echo "$0 arch version package_name (example: $0 aarch64 1.1.1 exlude_name alsa-lib)"
@@ -12,6 +12,10 @@ shift
 exclude=$1
 shift
 REPO=/repo/arm
+if [ -e ${HOME}/.config/scripts_opts ]; then
+    . ${HOME}/.config/scripts_opts
+    REPO=${LOCAL_REPO}/arm
+fi
 
 if [ ${arch} = "all" ]; then
     arch="aarch64 aarch32 armv6k armv7a thumb2"

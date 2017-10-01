@@ -1,5 +1,9 @@
 #!/bin/sh
 REPO=/repo
+if [ -e ${HOME}/.config/scripts_opts ]; then
+    . ${HOME}/.config/scripts_opts
+    REPO=${LOCAL_REPO}
+fi
 RELEASEVER=`cat /etc/fedora-release | awk '{print $3}'`
 ARCH=`uname -i`
 BUILDROOT=$HOME/rpmbuild
