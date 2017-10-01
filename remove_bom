@@ -1,0 +1,12 @@
+#!/bin/bash
+AWK=`which awk`
+
+if [ $# -ne 1 ]
+then
+    echo "Usage $0 textfile"
+elif [ ! -z $AWK ]
+then
+    $AWK '{if(NR==1)sub(/^\xef\xbb\xbf/,"");print}' $1 > /tmp/$1.tmp && mv /tmp/$1.tmp $1
+else
+    echo "Cannot find awk!"
+fi
