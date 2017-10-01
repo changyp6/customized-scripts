@@ -1,0 +1,19 @@
+#!/bin/bash
+PROXY_ADDR=127.0.0.1:33333
+if [ -e ${HOME}/.config/scripts_opts ]; then
+    . ${HOME}/.config/scripts_opts
+    PROXY_ADDR=${LOCAL_PROXY}
+fi
+
+if [ $# != 1 ]; then
+    echo "$0 URL"
+else
+    CURL=$(which curl)
+    if [ ! -z ${CURL} ]; then
+        export https_proxy=socks5://${PROXY_ADDR}
+        export http_proxy=socks5://${PROXY_ADDR}
+        ${CURL} -O $1
+    else
+        echo "Please install curl..."
+    fi
+fi
