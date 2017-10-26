@@ -1,2 +1,2 @@
 GREP=$(which grep)
-${GREP} -RHn $@
+${GREP} -RHn "$@"

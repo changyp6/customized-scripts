@@ -18,6 +18,14 @@ find_ss_service()
     done
 }
 
+find_tunnel_service()
+{
+    for tnconf in $(find /etc/shadowsocks-libev -name "tunnel-*")
+    do
+        services+=(ss-tunnel@$(echo $(basename ${tnconf} .json) | awk -F- '{print $2}').service)
+    done
+}
+
 service_ctrl()
 {
     systemctl $1 ${services[@]}
@@ -33,6 +41,9 @@ case ${ctrl_type} in
     ;;
     ss)
         find_ss_service
+    ;;
+    tunnel|tn)
+        find_tunnel_service
     ;;
     *)
         echo "No such function: ${ctrl_type}!"

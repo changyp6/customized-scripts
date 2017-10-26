@@ -1,4 +1,6 @@
 #!/bin/bash
+export https_proxy=socks5://127.0.0.1:33333
+export http_proxy=socks5://127.0.0.1:33333
 
 PROXY_ADDR=127.0.0.1:33333
 if [ -e ${HOME}/.config/scripts_opts ]; then
