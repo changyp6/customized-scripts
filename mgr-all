@@ -35,6 +35,7 @@ case ${ctrl_type} in
     all)
         find_kcp_service
         find_ss_service
+        find_tunnel_service
     ;;
     kcp)
         find_kcp_service
