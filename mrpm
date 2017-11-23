@@ -20,7 +20,8 @@ then
     FILE_NUM=`ls $BUILDROOT/RPMS/$BUILDARCH | wc -w`
     if [ $FILE_NUM -gt 0 ]
     then
-      find ${BUILDROOT}/RPMS/${BUILDARCH} -name "*debuginfo*" -or -name "*debugsource*" -delete
+      find ${BUILDROOT}/RPMS/${BUILDARCH} -name "*debuginfo*" -delete
+      find ${BUILDROOT}/RPMS/${BUILDARCH} -name "*debugsource*" -delete
 
       FILE_NUM=`ls $BUILDROOT/RPMS/$BUILDARCH | wc -w`
       if [ $FILE_NUM -gt 0 ]
@@ -41,7 +42,8 @@ then
     FILE_NUM=`ls $BUILDROOT/RPMS/$BUILDARCH | wc -w`
     if [ $FILE_NUM -gt 0 ]
     then
-      find ${BUILDROOT}/RPMS/${BUILDARCH} -name "*debuginfo*" -or -name "*debugsource*" -delete
+      find ${BUILDROOT}/RPMS/${BUILDARCH} -name "*debuginfo*" -delete
+      find ${BUILDROOT}/RPMS/${BUILDARCH} -name "*debugsource*" -delete
 
       FILE_NUM=`ls $BUILDROOT/RPMS/$BUILDARCH | wc -w`
       if [ $FILE_NUM -gt 0 ]
@@ -61,7 +63,8 @@ then
     FILE_NUM=`ls $BUILDROOT/RPMS/noarch | wc -w`
     if [ $FILE_NUM -gt 0 ]
     then
-      find $BUILDROOT/RPMS/noarch -name "*debuginfo*" -or -name "*debugsource*" -delete
+      find $BUILDROOT/RPMS/noarch -name "*debuginfo*" -delete
+      find $BUILDROOT/RPMS/noarch -name "*debugsource*" -delete
       mkdir -p $REPO/arm/rpms
       mkdir -p $REPO/arm/thumb2
       mkdir -p $REPO/arm/armv6k
