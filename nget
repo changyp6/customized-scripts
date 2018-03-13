@@ -1,5 +1,5 @@
 #!/bin/bash
-PROXY_ADDR=127.0.0.1:33333
+PROXY_ADDR=127.0.0.1:11111
 if [ -e ${HOME}/.config/scripts_opts ]; then
     . ${HOME}/.config/scripts_opts
     PROXY_ADDR=${LOCAL_PROXY}
