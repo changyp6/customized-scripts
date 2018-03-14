@@ -1,11 +1,11 @@
 #!/bin/bash
-PROXY_ADDR=127.0.0.1:11111
+PROXY_ADDR=127.0.0.1:23232
 if [ -e ${HOME}/.config/scripts_opts ]; then
     . ${HOME}/.config/scripts_opts
     PROXY_ADDR=${LOCAL_PROXY}
 fi
 export http_proxy=socks5://${PROXY_ADDR}
 export https_proxy=socks5://${PROXY_ADDR}
-#export http_proxy=socks5://127.0.0.1:11111
-#export https_proxy=socks5://127.0.0.1:11111
+#export http_proxy=socks5://127.0.0.1:23232
+#export https_proxy=socks5://127.0.0.1:23232
 reloadrepo && sudo -E dnf --refresh $@
