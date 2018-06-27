@@ -2,20 +2,34 @@
 services=()
 ctrl_type=$(echo $(basename $0) | awk -F- '{print $2}')
 
+find_obfs_service()
+{
+    if [ -e /etc/simple-obfs ]; then
+        for obfsconf in $(find /etc/simple-obfs -type f)
+        do
+            services+=(obfs@$(basename ${obfsconf} .conf).service)
+        done
+    fi
+}
+
 find_kcp_service()
 {
-    for kcpconf in $(find /etc/kcptun -type f)
-    do
-        services+=(kcptun@$(basename ${kcpconf} .conf).service)
-    done
+    if [ -e /etc/kcptun ]; then
+        for kcpconf in $(find /etc/kcptun -type f)
+        do
+            services+=(kcptun@$(basename ${kcpconf} .conf).service)
+        done
+    fi
 }
 
 find_ss_service()
 {
-    for ssconf in $(find /etc/shadowsocks-libev -name "local-*")
-    do
-        services+=(ss-local@$(echo $(basename ${ssconf} .json) | awk -F- '{print $2}').service)
-    done
+    if [ -e /etc/shadowsocks-libev ]; then
+        for ssconf in $(find /etc/shadowsocks-libev -name "local-*")
+        do
+            services+=(ss-local@$(echo $(basename ${ssconf} .json) | awk -F- '{print $2}').service)
+        done
+    fi
 }
 
 find_tunnel_service()
@@ -33,6 +47,7 @@ service_ctrl()
 
 case ${ctrl_type} in
     all)
+        find_obfs_service
         find_kcp_service
         find_ss_service
         find_tunnel_service
