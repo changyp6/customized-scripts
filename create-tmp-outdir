@@ -1,0 +1,6 @@
+#!/bin/bash
+mkdir -p /tmp/out-$(whoami)
+mkdir -p /tmp/out-$(whoami)-rpmbuild/build
+mkdir -p /tmp/out-$(whoami)-rpmbuild/buildroot
+mkdir -p /tmp/out-$(whoami)-rpmbuild/rpms
+
