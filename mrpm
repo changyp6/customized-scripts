@@ -4,7 +4,7 @@ if [ -e ${HOME}/.config/scripts_opts ]; then
     . ${HOME}/.config/scripts_opts
     REPO=${LOCAL_REPO}
 fi
-RELEASEVER=`cat /etc/fedora-release | awk '{print $3}'`
+RELEASEVER=$(cat /etc/os-release | grep VERSION_ID | awk -F\= '{print $2}' | bc)
 ARCH=`uname -i`
 BUILDROOT=$HOME/rpmbuild
 

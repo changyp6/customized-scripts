@@ -6,7 +6,7 @@ if [ -e ${HOME}/.config/scripts_opts ]; then
 fi
 ARCH=`uname -i`
 if [ $# -ne 1 ]; then
-  RELEASEVER=`cat /etc/fedora-release | awk '{print $3}'`
+  RELEASEVER=$(cat /etc/os-release | grep VERSION_ID | awk -F\= '{print $2}' | bc)
 else
   RELEASEVER=$1
 fi
