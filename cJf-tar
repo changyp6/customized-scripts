@@ -1,0 +1,17 @@
+#!/bin/bash
+
+TAR=$(which tar)
+PXZ=$(which pxz)
+
+if [[ -z ${TAR} ]]; then
+    echo "Install tar before running $0"
+    exit 1
+fi
+
+if [[ -z ${PXZ} ]]; then
+    echo "pxz is not installed, use default compressor."
+    tar -caf "$@"
+else
+    tar -I pxz -cf "$@"
+fi
+
