@@ -3,7 +3,7 @@
 TAR=$(which tar)
 PXZ=$(which pxz)
 
-PKG=$0
+PKG=$1
 
 if [[ -z ${TAR} ]]; then
     echo "Install tar before running $0"
