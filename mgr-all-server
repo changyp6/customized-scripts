@@ -25,9 +25,12 @@ find_kcp_service()
 find_ss_service()
 {
     if [ -e /etc/shadowsocks-libev ]; then
-        for ssconf in $(find /etc/shadowsocks-libev -type f -name "*.json")
+        for ssconf in $(find /etc/shadowsocks-libev -type f -name "server-*.json")
         do
-            services+=(ss@$(echo $(basename ${ssconf} .json) | awk -F- '{print $2}').service)
+            name=$(echo $(basename ${ssconf} .json) | awk -F- '{print $2}')
+            if [ ! -z ${name} ]; then
+                services+=(ss@${name}.service)
+            fi
         done
     fi
 }
