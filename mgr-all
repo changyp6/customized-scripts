@@ -4,40 +4,22 @@ ctrl_type=$(echo $(basename $0) | awk -F- '{print $2}')
 
 find_obfs_service()
 {
-    if [ -e /etc/simple-obfs ]; then
-        for obfsconf in $(find /etc/simple-obfs -type f)
-        do
-            services+=(obfs@$(basename ${obfsconf} .conf).service)
-        done
-    fi
+    services+=(obfs*@*.service)
 }
 
 find_kcp_service()
 {
-    if [ -e /etc/kcptun ]; then
-        for kcpconf in $(find /etc/kcptun -type f -name "*.conf")
-        do
-            services+=(kcptun-client@$(basename ${kcpconf} .conf).service)
-        done
-    fi
+    services+=(kcptun*@*.service)
 }
 
 find_ss_service()
 {
-    if [ -e /etc/shadowsocks-libev ]; then
-        for ssconf in $(find /etc/shadowsocks-libev -name "local-*")
-        do
-            services+=(ss-local@$(echo $(basename ${ssconf} .json) | awk -F- '{print $2}').service)
-        done
-    fi
+    services+=(ss*@*.service)
 }
 
 find_tunnel_service()
 {
-    for tnconf in $(find /etc/shadowsocks-libev -name "tunnel-*")
-    do
-        services+=(ss-tunnel@$(echo $(basename ${tnconf} .json) | awk -F- '{print $2}').service)
-    done
+    services+=(ss-tunnel@*.service)
 }
 
 service_ctrl()
@@ -50,7 +32,6 @@ case ${ctrl_type} in
         find_obfs_service
         find_kcp_service
         find_ss_service
-        find_tunnel_service
     ;;
     kcp)
         find_kcp_service
@@ -61,8 +42,8 @@ case ${ctrl_type} in
     obfs)
         find_obfs_service
     ;;
-    tunnel|tn)
-        find_tunnel_service
+    tn|tunnel)
+        find_tunnel_servic
     ;;
     *)
         echo "No such function: ${ctrl_type}!"
