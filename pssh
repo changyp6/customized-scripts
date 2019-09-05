@@ -1,0 +1,17 @@
+#!/bin/bash
+SSH=$(which ssh)
+if [ ! -e ${SSH} ]; then
+    printf "\033[01;31mPlease install OpenSSH...\033[00m\n"
+    exit 1
+fi
+if [ -e ${HOME}/.config/scripts_opts ]; then
+    . ${HOME}/.config/scripts_opts
+
+    if [[ x"${LOCAL_PROXY}" != x ]]; then
+        ${SSH} -o "ServerAliveInterval 10" -o "ProxyCommand nc --proxy=${LOCAL_PROXY} --proxy-type socks5 %h %p" "$@"
+    else
+        printf "\033[01;31mLOCAL_PROXY is NOT set...\033[00m"
+    fi
+else
+    printf "\033[01;31m~/.config/scripts_opts does NOT exit...\033[00m"
+fi
