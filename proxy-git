@@ -1,0 +1,8 @@
+#!/bin/bash
+NC=$(which nc)
+if [ -e ${HOME}/.config/scripts_opts ]; then
+    . ${HOME}/.config/scripts_opts
+    if [[ -e ${NC} ]]; then
+        ${NC} --proxy=${LOCAL_PROXY} --proxy-type socks5 $1 $2
+    fi
+fi

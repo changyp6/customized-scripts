@@ -1,0 +1,26 @@
+#!/bin/bash
+NAME=$(basename $0)
+CMD=""
+if [[ "${NAME}" = "pssh" ]]; then
+    CMD=$(which ssh)
+elif [[ "${NAME}" = "pscp" ]]; then
+    CMD=$(which scp)
+else
+    printf "Use link name pssh or pscp\n"
+    exit 1
+fi
+if [ ! -e ${CMD} ]; then
+    printf "\033[01;31mPlease install OpenSSH...\033[00m\n"
+    exit 1
+fi
+if [ -e ${HOME}/.config/scripts_opts ]; then
+    . ${HOME}/.config/scripts_opts
+
+    if [[ x"${LOCAL_PROXY}" != x ]]; then
+        ${CMD} -o "ServerAliveInterval 10" -o "ProxyCommand nc --proxy=${LOCAL_PROXY} --proxy-type socks5 %h %p" "$@"
+    else
+        printf "\033[01;31mLOCAL_PROXY is NOT set...\033[00m\n"
+    fi
+else
+    printf "\033[01;31m~/.config/scripts_opts does NOT exit...\033[00m\n"
+fi
