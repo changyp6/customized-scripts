@@ -6,45 +6,45 @@ IP_ROUTE="local 0.0.0.0/0 dev lo table 100"
 start()
 {
     # Install xt_REDIRECT
-    modprobe xt_TPROXY
+    /usr/sbin/modprobe xt_TPROXY
 
     # Adding route rules
-    ip rule  add ${IP_RULE}
-    ip route add ${IP_ROUTE}
+    /usr/sbin/ip rule  add ${IP_RULE}
+    /usr/sbin/ip route add ${IP_ROUTE}
 
     # Making table
-    iptables -t mangle -N V2RAY_PRE
+    /usr/sbin/iptables -t mangle -N V2RAY_PRE
     
-    iptables -t mangle -A V2RAY_PRE  -m addrtype --dst-type LOCAL,MULTICAST,BROADCAST -j RETURN
-    iptables -t mangle -A V2RAY_PRE  -d 10.0.0.0/8                                    -j RETURN
-    iptables -t mangle -A V2RAY_PRE  -d 10.4.8.0/23                                   -j RETURN
+    /usr/sbin/iptables -t mangle -A V2RAY_PRE  -m addrtype --dst-type LOCAL,MULTICAST,BROADCAST -j RETURN
+    /usr/sbin/iptables -t mangle -A V2RAY_PRE  -d 10.0.0.0/8                                    -j RETURN
+    /usr/sbin/iptables -t mangle -A V2RAY_PRE  -d 10.4.8.0/23                                   -j RETURN
  
-    iptables -t mangle -A V2RAY_PRE  -p udp -j TPROXY --on-port 55555 --tproxy-mark 0x01/0x01
-    iptables -t mangle -A V2RAY_PRE  -p tcp -j TPROXY --on-port 55555 --tproxy-mark 0x01/0x01
+    /usr/sbin/iptables -t mangle -A V2RAY_PRE  -p udp -j TPROXY --on-port 55555 --tproxy-mark 0x01/0x01
+    /usr/sbin/iptables -t mangle -A V2RAY_PRE  -p tcp -j TPROXY --on-port 55555 --tproxy-mark 0x01/0x01
 
-    iptables -t mangle -A PREROUTING -j V2RAY_PRE
+    /usr/sbin/iptables -t mangle -A PREROUTING -j V2RAY_PRE
     
-    iptables -t mangle -N V2RAY_OUT
-    iptables -t mangle -A V2RAY_OUT  -m addrtype --dst-type LOCAL,MULTICAST,BROADCAST -j RETURN
-    iptables -t mangle -A V2RAY_OUT  -d 10.0.0.0/8                                    -j RETURN
-    iptables -t mangle -A V2RAY_OUT  -d 10.4.8.0/23                                   -j RETURN
+    /usr/sbin/iptables -t mangle -N V2RAY_OUT
+    /usr/sbin/iptables -t mangle -A V2RAY_OUT  -m addrtype --dst-type LOCAL,MULTICAST,BROADCAST -j RETURN
+    /usr/sbin/iptables -t mangle -A V2RAY_OUT  -d 10.0.0.0/8                                    -j RETURN
+    /usr/sbin/iptables -t mangle -A V2RAY_OUT  -d 10.4.8.0/23                                   -j RETURN
 
-    iptables -t mangle -A V2RAY_OUT  -j RETURN -m mark --mark 0xaa
-    iptables -t mangle -A V2RAY_OUT  -p udp -j MARK --set-mark 1
-    iptables -t mangle -A V2RAY_OUT  -p tcp -j MARK --set-mark 1
-    iptables -t mangle -A OUTPUT -j V2RAY_OUT
+    /usr/sbin/iptables -t mangle -A V2RAY_OUT  -j RETURN -m mark --mark 0xaa
+    /usr/sbin/iptables -t mangle -A V2RAY_OUT  -p udp -j MARK --set-mark 1
+    /usr/sbin/iptables -t mangle -A V2RAY_OUT  -p tcp -j MARK --set-mark 1
+    /usr/sbin/iptables -t mangle -A OUTPUT -j V2RAY_OUT
 }
 
 stop()
 {
-    ip route del ${IP_ROUTE}
-    ip rule  del ${IP_RULE}
-    iptables -t nat    -S | grep V2RAY | sed -e "s/-A/iptables -t nat -D/g"    | grep "\-D" | while read -r CMD; do ${CMD}; done
-    iptables -t mangle -S | grep V2RAY | sed -e "s/-A/iptables -t mangle -D/g" | grep "\-D" | while read -r CMD; do ${CMD}; done
-    iptables -t mangle -F V2RAY_PRE
-    iptables -t mangle -X V2RAY_PRE
-    iptables -t mangle -F V2RAY_OUT
-    iptables -t mangle -X V2RAY_OUT
+    /usr/sbin/ip route del ${IP_ROUTE}
+    /usr/sbin/ip rule  del ${IP_RULE}
+    /usr/sbin/iptables -t nat    -S | grep V2RAY | sed -e "s/-A/iptables -t nat -D/g"    | grep "\-D" | while read -r CMD; do ${CMD}; done
+    /usr/sbin/iptables -t mangle -S | grep V2RAY | sed -e "s/-A/iptables -t mangle -D/g" | grep "\-D" | while read -r CMD; do ${CMD}; done
+    /usr/sbin/iptables -t mangle -F V2RAY_PRE
+    /usr/sbin/iptables -t mangle -X V2RAY_PRE
+    /usr/sbin/iptables -t mangle -F V2RAY_OUT
+    /usr/sbin/iptables -t mangle -X V2RAY_OUT
 }
 
 case $1 in
