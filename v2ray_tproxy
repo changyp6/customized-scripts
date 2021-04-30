@@ -14,25 +14,31 @@ start()
 
     # Making table
     /usr/sbin/iptables -t mangle -N V2RAY_PRE
-    
+    /usr/sbin/iptables -t mangle -A V2RAY_PRE  -m mark --mark 0xaa                              -j RETURN
     /usr/sbin/iptables -t mangle -A V2RAY_PRE  -m addrtype --dst-type LOCAL,MULTICAST,BROADCAST -j RETURN
     /usr/sbin/iptables -t mangle -A V2RAY_PRE  -d 10.0.0.0/8                                    -j RETURN
-    /usr/sbin/iptables -t mangle -A V2RAY_PRE  -d 10.4.8.0/23                                   -j RETURN
- 
-    /usr/sbin/iptables -t mangle -A V2RAY_PRE  -p udp -j TPROXY --on-port 55555 --tproxy-mark 0x01/0x01
-    /usr/sbin/iptables -t mangle -A V2RAY_PRE  -p tcp -j TPROXY --on-port 55555 --tproxy-mark 0x01/0x01
+    /usr/sbin/iptables -t mangle -A V2RAY_PRE  -d 10.4.10.0/23                                  -j RETURN
+    /usr/sbin/iptables -t mangle -A V2RAY_PRE  -d 10.4.88.0/23                                  -j RETURN
 
+    /usr/sbin/iptables -t mangle -A V2RAY_PRE  -p udp -j TPROXY --on-ip 127.0.0.1 --on-port 55555 --tproxy-mark 0x01/0x01
+    /usr/sbin/iptables -t mangle -A V2RAY_PRE  -p tcp -j TPROXY --on-ip 127.0.0.1 --on-port 55555 --tproxy-mark 0x01/0x01
     /usr/sbin/iptables -t mangle -A PREROUTING -j V2RAY_PRE
     
     /usr/sbin/iptables -t mangle -N V2RAY_OUT
+    /usr/sbin/iptables -t mangle -A V2RAY_OUT  -m mark --mark 0xaa                              -j RETURN
     /usr/sbin/iptables -t mangle -A V2RAY_OUT  -m addrtype --dst-type LOCAL,MULTICAST,BROADCAST -j RETURN
     /usr/sbin/iptables -t mangle -A V2RAY_OUT  -d 10.0.0.0/8                                    -j RETURN
-    /usr/sbin/iptables -t mangle -A V2RAY_OUT  -d 10.4.8.0/23                                   -j RETURN
+    /usr/sbin/iptables -t mangle -A V2RAY_OUT  -d 10.4.10.0/23                                  -j RETURN
+    /usr/sbin/iptables -t mangle -A V2RAY_OUT  -d 10.4.88.0/23                                  -j RETURN
 
-    /usr/sbin/iptables -t mangle -A V2RAY_OUT  -j RETURN -m mark --mark 0xaa
-    /usr/sbin/iptables -t mangle -A V2RAY_OUT  -p udp -j MARK --set-mark 1
-    /usr/sbin/iptables -t mangle -A V2RAY_OUT  -p tcp -j MARK --set-mark 1
+    /usr/sbin/iptables -t mangle -A V2RAY_OUT  -p udp -j MARK --set-mark 0x01/0x01
+    /usr/sbin/iptables -t mangle -A V2RAY_OUT  -p tcp -j MARK --set-mark 0x01/0x01
     /usr/sbin/iptables -t mangle -A OUTPUT -j V2RAY_OUT
+
+    /usr/sbin/iptables -t mangle -N V2RAY_DIVERT
+    /usr/sbin/iptables -t mangle -A V2RAY_DIVERT -j MARK --set-mark 0x01/0x01
+    /usr/sbin/iptables -t mangle -A V2RAY_DIVERT -j ACCEPT
+    /usr/sbin/iptables -t mangle -I PREROUTING -p tcp -m socket -j V2RAY_DIVERT
 }
 
 stop()
@@ -45,6 +51,8 @@ stop()
     /usr/sbin/iptables -t mangle -X V2RAY_PRE
     /usr/sbin/iptables -t mangle -F V2RAY_OUT
     /usr/sbin/iptables -t mangle -X V2RAY_OUT
+    /usr/sbin/iptables -t mangle -F V2RAY_DIVERT
+    /usr/sbin/iptables -t mangle -X V2RAY_DIVERT
 }
 
 case $1 in
