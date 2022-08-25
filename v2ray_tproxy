@@ -1,50 +1,101 @@
 #!/usr/bin/bash
+IP_MARK="0x01/0x01"
+IP_RULE="priority 1 fwmark ${IP_MARK} table 100 protocol kernel"
+IP_ROUTE="local default dev lo table 100"
 
-IP_RULE="fwmark 0x01/0x01  table 100"
-IP_ROUTE="local 0.0.0.0/0 dev lo table 100"
-
-start()
+ipv4_rules()
 {
-    # Install xt_REDIRECT
-    /usr/sbin/modprobe xt_TPROXY
-
-    # Adding route rules
-    /usr/sbin/ip rule  add ${IP_RULE}
-    /usr/sbin/ip route add ${IP_ROUTE}
-
-    # Making table
-    /usr/sbin/iptables -t mangle -N V2RAY_PRE
-    /usr/sbin/iptables -t mangle -A V2RAY_PRE  -m mark --mark 0xaa                              -j RETURN
-    /usr/sbin/iptables -t mangle -A V2RAY_PRE  -m addrtype --dst-type LOCAL,MULTICAST,BROADCAST -j RETURN
-    /usr/sbin/iptables -t mangle -A V2RAY_PRE  -d 10.0.0.0/8                                    -j RETURN
-    /usr/sbin/iptables -t mangle -A V2RAY_PRE  -d 10.4.10.0/23                                  -j RETURN
-    /usr/sbin/iptables -t mangle -A V2RAY_PRE  -d 10.4.88.0/23                                  -j RETURN
-
-    /usr/sbin/iptables -t mangle -A V2RAY_PRE  -p udp -j TPROXY --on-ip 127.0.0.1 --on-port 55555 --tproxy-mark 0x01/0x01
-    /usr/sbin/iptables -t mangle -A V2RAY_PRE  -p tcp -j TPROXY --on-ip 127.0.0.1 --on-port 55555 --tproxy-mark 0x01/0x01
-    /usr/sbin/iptables -t mangle -A PREROUTING -j V2RAY_PRE
+    /usr/sbin/ip -4 route add ${IP_ROUTE}
+    /usr/sbin/ip -4 rule  add ${IP_RULE}
     
-    /usr/sbin/iptables -t mangle -N V2RAY_OUT
-    /usr/sbin/iptables -t mangle -A V2RAY_OUT  -m mark --mark 0xaa                              -j RETURN
-    /usr/sbin/iptables -t mangle -A V2RAY_OUT  -m addrtype --dst-type LOCAL,MULTICAST,BROADCAST -j RETURN
-    /usr/sbin/iptables -t mangle -A V2RAY_OUT  -d 10.0.0.0/8                                    -j RETURN
-    /usr/sbin/iptables -t mangle -A V2RAY_OUT  -d 10.4.10.0/23                                  -j RETURN
-    /usr/sbin/iptables -t mangle -A V2RAY_OUT  -d 10.4.88.0/23                                  -j RETURN
+    /usr/sbin/ipset create ALL_LOCAL_V4 hash:net family inet
+    for ip in $(ip -4 addr | grep -w "inet" | awk '{print $2}'); do
+        /usr/sbin/ipset add ALL_LOCAL_V4 ${ip}
+    done
 
-    /usr/sbin/iptables -t mangle -A V2RAY_OUT  -p udp -j MARK --set-mark 0x01/0x01
-    /usr/sbin/iptables -t mangle -A V2RAY_OUT  -p tcp -j MARK --set-mark 0x01/0x01
-    /usr/sbin/iptables -t mangle -A OUTPUT -j V2RAY_OUT
+    /usr/sbin/iptables -t mangle -N V2RAY_PRE
+    /usr/sbin/iptables -t mangle -A V2RAY_PRE    -m addrtype --dst-type LOCAL,MULTICAST,BROADCAST -j RETURN
+    /usr/sbin/iptables -t mangle -A V2RAY_PRE    -m set --match-set ALL_LOCAL_V4 dst              -j RETURN
+                                                 
+    /usr/sbin/iptables -t mangle -A V2RAY_PRE    -p udp -j TPROXY --on-ip 127.0.0.1 --on-port 55555 --tproxy-mark ${IP_MARK}
+    /usr/sbin/iptables -t mangle -A V2RAY_PRE    -p tcp -j TPROXY --on-ip 127.0.0.1 --on-port 55555 --tproxy-mark ${IP_MARK}
+    /usr/sbin/iptables -t mangle -A PREROUTING   -j V2RAY_PRE
+                                                 
+    /usr/sbin/iptables -t mangle -N V2RAY_OUT    
+    /usr/sbin/iptables -t mangle -A V2RAY_OUT    -m owner --gid-owner 33333                       -j RETURN
+    /usr/sbin/iptables -t mangle -A V2RAY_OUT    -m addrtype --dst-type LOCAL,MULTICAST,BROADCAST -j RETURN
+    /usr/sbin/iptables -t mangle -A V2RAY_OUT    -m set --match-set ALL_LOCAL_V4 dst              -j RETURN
+                                                 
+    /usr/sbin/iptables -t mangle -A V2RAY_OUT    -p udp -m owner ! --gid-owner 33333 -j MARK --set-xmark ${IP_MARK}
+    /usr/sbin/iptables -t mangle -A V2RAY_OUT    -p tcp -m owner ! --gid-owner 33333 -j MARK --set-xmark ${IP_MARK}
+    /usr/sbin/iptables -t mangle -A OUTPUT       -j V2RAY_OUT
 
     /usr/sbin/iptables -t mangle -N V2RAY_DIVERT
-    /usr/sbin/iptables -t mangle -A V2RAY_DIVERT -j MARK --set-mark 0x01/0x01
+    /usr/sbin/iptables -t mangle -A V2RAY_DIVERT -j MARK --set-xmark ${IP_MARK}
     /usr/sbin/iptables -t mangle -A V2RAY_DIVERT -j ACCEPT
-    /usr/sbin/iptables -t mangle -I PREROUTING -p tcp -m socket -j V2RAY_DIVERT
+    /usr/sbin/iptables -t mangle -I PREROUTING   -p tcp -m socket -j V2RAY_DIVERT
+    
 }
 
-stop()
+ipv6_rules()
 {
-    /usr/sbin/ip route del ${IP_ROUTE}
-    /usr/sbin/ip rule  del ${IP_RULE}
+    /usr/sbin/ip -6 route add ${IP_ROUTE}
+    /usr/sbin/ip -6 rule  add ${IP_RULE}
+    
+    /usr/sbin/ipset create ALL_LOCAL_V6 hash:net family inet6
+    /usr/sbin/ipset add ALL_LOCAL_V6 ::/128
+    /usr/sbin/ipset add ALL_LOCAL_V6 ::ffff:0:0/96
+    /usr/sbin/ipset add ALL_LOCAL_V6 ::ffff:0:0:0/96
+    /usr/sbin/ipset add ALL_LOCAL_V6 64:ff9b::/96
+    /usr/sbin/ipset add ALL_LOCAL_V6 100::/64
+    /usr/sbin/ipset add ALL_LOCAL_V6 2001::/32
+    /usr/sbin/ipset add ALL_LOCAL_V6 2001:20::/28
+    /usr/sbin/ipset add ALL_LOCAL_V6 2001:db8::/32
+    /usr/sbin/ipset add ALL_LOCAL_V6 2002::/16
+    /usr/sbin/ipset add ALL_LOCAL_V6 fc00::/7
+    /usr/sbin/ipset add ALL_LOCAL_V6 fe80::/10
+    /usr/sbin/ipset add ALL_LOCAL_V6 ff00::/10
+    /usr/sbin/ipset add ALL_LOCAL_V6 ff00::/8
+    for ip in $(ip -6 addr | grep -w "inet6" | awk '{print $2}' | grep -v fe80); do
+        /usr/sbin/ipset add ALL_LOCAL_V6 ${ip}
+    done
+    #if [[ -e /tmp/all_cn_ipv6.txt ]]; then
+    #    for file in /tmp/all_cn_ipv6.txt; do
+    #        while IFS= read -r LINE
+    #        do
+    #            ipset add ALL_LOCAL_V6 ${LINE}
+    #        done < ${file}
+    #    done
+    #fi
+    
+    /usr/sbin/ip6tables -t mangle -N V2RAY_PRE
+    /usr/sbin/ip6tables -t mangle -A V2RAY_PRE    -m addrtype --dst-type LOCAL,MULTICAST      -j RETURN
+    /usr/sbin/ip6tables -t mangle -A V2RAY_PRE    -m set --match-set ALL_LOCAL_V6 dst         -j RETURN
+                                                  
+    /usr/sbin/ip6tables -t mangle -A V2RAY_PRE    -p udp -j TPROXY --on-ip ::1 --on-port 55555 --tproxy-mark ${IP_MARK}
+    /usr/sbin/ip6tables -t mangle -A V2RAY_PRE    -p tcp -j TPROXY --on-ip ::1 --on-port 55555 --tproxy-mark ${IP_MARK}
+    /usr/sbin/ip6tables -t mangle -A PREROUTING   -j V2RAY_PRE
+                                                  
+    /usr/sbin/ip6tables -t mangle -N V2RAY_OUT    
+    /usr/sbin/ip6tables -t mangle -A V2RAY_OUT    -m owner --gid-owner 33333                  -j RETURN
+    /usr/sbin/ip6tables -t mangle -A V2RAY_OUT    -m addrtype --dst-type LOCAL,MULTICAST      -j RETURN
+    /usr/sbin/ip6tables -t mangle -A V2RAY_OUT    -m set --match-set ALL_LOCAL_V6 dst         -j RETURN
+                                                  
+    /usr/sbin/ip6tables -t mangle -A V2RAY_OUT    -p udp -m owner ! --gid-owner 33333 -j MARK --set-xmark ${IP_MARK}
+    /usr/sbin/ip6tables -t mangle -A V2RAY_OUT    -p tcp -m owner ! --gid-owner 33333 -j MARK --set-xmark ${IP_MARK}
+    /usr/sbin/ip6tables -t mangle -A OUTPUT       -j V2RAY_OUT
+    
+    /usr/sbin/ip6tables -t mangle -N V2RAY_DIVERT
+    /usr/sbin/ip6tables -t mangle -A V2RAY_DIVERT -j MARK --set-xmark ${IP_MARK}
+    /usr/sbin/ip6tables -t mangle -A V2RAY_DIVERT -j ACCEPT
+    /usr/sbin/ip6tables -t mangle -I PREROUTING   -p tcp -m socket -j V2RAY_DIVERT
+    
+}
+
+stop_ipv4()
+{
+    /usr/sbin/ip -4 rule  del ${IP_RULE}
+    /usr/sbin/ip -4 route del ${IP_ROUTE}
     /usr/sbin/iptables -t nat    -S | grep V2RAY | sed -e "s/-A/iptables -t nat -D/g"    | grep "\-D" | while read -r CMD; do ${CMD}; done
     /usr/sbin/iptables -t mangle -S | grep V2RAY | sed -e "s/-A/iptables -t mangle -D/g" | grep "\-D" | while read -r CMD; do ${CMD}; done
     /usr/sbin/iptables -t mangle -F V2RAY_PRE
@@ -53,6 +104,40 @@ stop()
     /usr/sbin/iptables -t mangle -X V2RAY_OUT
     /usr/sbin/iptables -t mangle -F V2RAY_DIVERT
     /usr/sbin/iptables -t mangle -X V2RAY_DIVERT
+    /usr/sbin/ipset flush   ALL_LOCAL_V4
+    /usr/sbin/ipset destroy ALL_LOCAL_V4
+}
+
+stop_ipv6()
+{
+    /usr/sbin/ip -6 rule  del ${IP_RULE}
+    /usr/sbin/ip -6 route del ${IP_ROUTE}
+    /usr/sbin/ip6tables -t nat    -S | grep V2RAY | sed -e "s/-A/ip6tables -t nat -D/g"    | grep "\-D" | while read -r CMD; do ${CMD}; done
+    /usr/sbin/ip6tables -t mangle -S | grep V2RAY | sed -e "s/-A/ip6tables -t mangle -D/g" | grep "\-D" | while read -r CMD; do ${CMD}; done
+    /usr/sbin/ip6tables -t mangle -F V2RAY_PRE
+    /usr/sbin/ip6tables -t mangle -X V2RAY_PRE
+    /usr/sbin/ip6tables -t mangle -F V2RAY_OUT
+    /usr/sbin/ip6tables -t mangle -X V2RAY_OUT
+    /usr/sbin/ip6tables -t mangle -F V2RAY_DIVERT
+    /usr/sbin/ip6tables -t mangle -X V2RAY_DIVERT
+    /usr/sbin/ipset flush   ALL_LOCAL_V6
+    /usr/sbin/ipset destroy ALL_LOCAL_V6
+}
+
+start()
+{
+    # Install xt_REDIRECT
+    /usr/sbin/modprobe xt_TPROXY
+
+    # Adding route rules
+    ipv4_rules
+    ipv6_rules
+}
+
+stop()
+{
+    stop_ipv4
+    stop_ipv6
 }
 
 case $1 in
